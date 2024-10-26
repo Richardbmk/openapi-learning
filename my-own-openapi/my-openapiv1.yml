@@ -14,6 +14,13 @@ info:
       - Televisions
       - Headphones
   termsOfService: https://easzyshop.com/terms/
+  x-custom-info:
+    comment: Some Comments
+    developers:
+      - name: John Doe
+        email: john@doe.com
+      - name: John Doe
+        email: john@doe.com
   contact:
     name: API Support
     url: https://www.eazyshop.com/support
@@ -23,9 +30,14 @@ info:
     url: https://www.eazyshop.com/licenses/LICENSE-2.0.html
   version: 0.0.1
 
+externalDocs:
+  description: External Documentation
+  url: https://example.com
+
 servers:
   - url: https://development.eazyshop-server.com/v1
     description: Development server
+
 tags:
   - name: Categories
     description: Categories-related operations
@@ -41,6 +53,7 @@ paths:
         - Categories
       summary: List all categories
       description: Returns the list of categories supported by EazyShop
+      operationId: getCategories
       parameters:
         - name: category
           in: query
@@ -93,6 +106,7 @@ paths:
         - Categories
       summary: Return category details
       description: Returns the category details from EazyShop
+      operationId: getCategoryDetails
       parameters:
         - name: categoryId
           in: path
@@ -119,6 +133,7 @@ paths:
       summary: List all products
       description: |
         Return the list of products supported by EazyShop
+      operationId: getProducts
       parameters:
         - name: categoryId
           in: query
@@ -165,6 +180,7 @@ paths:
       summary: Retrun product details
       description: |
         Returns the product details from EazyShop
+      operationId: getProductDetails
       parameters:
         - name: productId
           in: path
@@ -191,6 +207,7 @@ paths:
       summary: Create Order
       description: |
         Post order details to EazyShop for processing and Shipping
+      operationId: saveOrderDetails
       requestBody:
         content:
           application/json:
@@ -213,6 +230,9 @@ paths:
                 properties:
                   orderId:
                     type: integer
+          links:
+            GetOrderByOrderId:
+              $ref: '#/components/links/GetOrderByOrderId'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -222,12 +242,15 @@ paths:
       summary: Update Order
       description: |
         Update order details to EazyShop for processing and shipping
+      operationId: updateOrderDetails
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
+                orderId:
+                  type: integer
                 products:
                   type: array
                   items:
@@ -245,6 +268,7 @@ paths:
         - Orders
       summary: Delete Order
       description: Delete order details from EazyShop
+      operationId: deleteOrderDetails
       parameters:
         - $ref: '#/components/parameters/orderIdQueryParam'
       responses:
@@ -258,8 +282,38 @@ paths:
         - Orders
       summary: Get Order Details
       description: Get order details from EazyShop
+      operationId: getOrderDetails
       parameters:
         - $ref: '#/components/parameters/orderIdQueryParam'
+      responses:
+        '200':
+          description: Fetch Order details successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderId:
+                    type: integer
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+                  address:
+                    $ref: '#/components/schemas/Address'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /orders/{orderId}:
+    get:
+      tags:
+        - Orders
+      summary: Get Order Details
+      description: Get order details from EazyShop
+      operationId: getOrderDetailsUsingPathParam
+      deprecated: true
+      parameters:
+        - $ref: '#/components/parameters/orderIdPathParam'
       responses:
         '200':
           description: Fetch Order details successfully
@@ -285,6 +339,7 @@ paths:
         - Orders
       summary: Insert OneOf the Order Details
       description: Insert OneOf the Order Details into EazyShop
+      operationId: demoOfOneOf
       requestBody:
         content:
           application/json:
@@ -293,9 +348,9 @@ paths:
               properties:
                 products:
                   type: object
-                  # oneOf:
-                  #   - $ref: '#/components/schemas/Mobile'
-                  #   - $ref: '#/components/schemas/Laptop'
+                  oneOf:
+                    - $ref: '#/components/schemas/Mobile'
+                    - $ref: '#/components/schemas/Laptop'
                 address:
                   $ref: '#/components/schemas/Address'
               required:
@@ -311,8 +366,9 @@ paths:
         - Orders
       summary: Get Order Details
       description: Get Order Details based on Order ID
+      operationId: demoOfAnyOf
       parameters:
-        # - $ref: '#/components/parameters/OrderIdQueryParam'
+        - $ref: '#/components/parameters/orderIdQueryParam'
         - name: fetchType
           in: query
           required: true
@@ -328,18 +384,24 @@ paths:
       responses:
         '200':
           description: Return product details
-          # content:
-          #   application/json:
-          #     schema:
-          #       # anyOf:
-          #       #   # - $ref: '#/components/schemas/OrderSummary'
-          #       #   # - $ref: '#/components/schemas/OrderAddress'
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/OrderSummary'
+                  - $ref: '#/components/schemas/OrderAddress'
 
 components:
   parameters:
     orderIdQueryParam:
       name: orderId
       in: query
+      required: true
+      schema:
+        type: integer
+    orderIdPathParam:
+      name: orderId
+      in: path
       required: true
       schema:
         type: integer
@@ -439,3 +501,11 @@ components:
       description: |
         An error occured while processing the request.
         Please contact support@eazyshop.com
+
+  links:
+    GetOrderByOrderId:
+      description: >
+        The `orderId` value returned in the response can be used as input parameter in `GET /orders`.
+      operationId: getProductDetails
+      parameters:
+        orderId: '$response.body#/orderId'
