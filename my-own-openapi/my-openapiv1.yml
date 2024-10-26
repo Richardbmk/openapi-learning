@@ -46,6 +46,15 @@ tags:
   - name: Orders
     description: Orders-related operations
 
+security:
+  - BasicAuth: []
+  - BearerAuth: []
+  - ApiKeyAuth: []
+  - oAuth2AuthCode:
+      - read
+      - write
+      - admin
+
 paths:
   /categories:
     get:
@@ -54,6 +63,8 @@ paths:
       summary: List all categories
       description: Returns the list of categories supported by EazyShop
       operationId: getCategories
+      security:
+        - BasicAuth: []
       parameters:
         - name: category
           in: query
@@ -107,6 +118,7 @@ paths:
       summary: Return category details
       description: Returns the category details from EazyShop
       operationId: getCategoryDetails
+      security: []
       parameters:
         - name: categoryId
           in: path
@@ -509,3 +521,26 @@ components:
       operationId: getProductDetails
       parameters:
         orderId: '$response.body#/orderId'
+
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+    oAuth2AuthCode:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://example.com/oauth/authorize
+          tokenUrl: https://example.com/api/oauth.access
+          scopes:
+            read: Read only access
+            write: Read Write access
+            admin: Admin access
